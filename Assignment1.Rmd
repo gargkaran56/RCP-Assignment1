@@ -1,0 +1,283 @@
+---
+title: 'Assignment Solution'
+output:
+  html_document:
+    df_print: paged
+    theme: cerulean
+    toc: yes
+    toc_depth: '2'
+  pdf_document:
+    highlight: tango
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+header-includes:
+- \usepackage{titling}
+- \pretitle{\begin{center} \includegraphics[width=5in,height=13in]{figs/front.jpg}\LARGE\\}
+- \posttitle{\end{center}}
+- \usepackage{fontawesome}
+- \usepackage[most]{tcolorbox}
+- \usepackage{xcolor}
+- \usepackage{sectsty}
+- \sectionfont{\color{olive}}
+---
+
+
+
+# Assignment 1 instructions
+
+In this assignment, we are going to look at the data of COVID-19 cases recorded in China outside Hubei province and on a few other countries.
+The data set contains information on patient's country of origin, gender, and age among others as you will see.
+The data has been obtained from a public data base reported in the [Lancet](https://www.thelancet.com/coronavirus). 
+You will:
+
+- Use Rmarkdown and Knitr R packages for reproducible reporting
+- Familiarise yourself with markdown syntax
+- Continue learning R coding skills  
+- Acquire practice with the tidyverse *package*, in particular, the packages *dplyr* and *ggplot2* 
+- Create a reproducible html report using Rmarkdown
+
+**Marking rubrick**: The marking scheme for this assignment is
+displayed in the script below and will be used to mark your individual
+assignments. In addition, **it is essential that the report you submit
+can be knitted into an html report with the R code chunks set to eval = TRUE** (otherwise you will receive 0 marks,
+regardless of whether the individual R code chunks run). In this assignment you simply need to feel the gaps marked with  ---. The R code and the R code ouput must be visible in the knitted report. For this assignment, you will need to upload the following into Moodle:
+
+- Your Rmd file,
+- Your html file, and
+- A PDF copy of your html file (you can do that by simply opening the html with a browser and printing it to PDF)
+
+
+
+# Loading libraries
+
+```{r , message = FALSE}
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(ggplot2)
+library(lubridate)
+library(gridExtra)
+library(rmdformats)
+```
+
+```{r  , echo = TRUE, message = FALSE, warning = FALSE}
+
+# Reading data (you do not need to modify this file)
+dat <- read_csv("Data/COVID19_2020_outsideHubei_23March.csv")
+
+dat <- dat %>%
+  mutate(sex = ifelse(sex == "female", "Female", sex),
+         sex = ifelse(sex == "male", "Male", sex))
+```
+
+
+# Question 1: How many variables and observations has this data set?
+
+There are different ways to find out the dimension (number of rows and columns)
+of a data set and below are a few options that you can use:
+
+
+```{r , eval = TRUE}
+dim(dat) # 1pt
+```
+
+
+# Question 2: Inline R code 
+
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Using inline R code, complete the sentence where you report the
+number of rows and columns in the data set.
+</span> </p>
+
+ The data set has `r nrow(dat)` (1pt) rows and `r ncol(dat)` (1pt) variables.
+
+
+
+# Question 3: Report the data set variable names in a table
+
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Ensure that the table is captioned "These are the variables 
+included in the COVID-19 data set". Make sure that you choose 2 
+kable_styling() options. </span> </p>
+
+
+```{r ,eval = TRUE}
+names(dat) %>% # 1pt
+  kable() %>% # 1pt
+  kable_styling(bootstrap_options = c("basic","striped"))  # 1pt
+  
+```
+
+
+# Question 4: Data Wrangling: Practising with *dplyr*
+
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Create a new data set that contains only the following variables:
+country, age, sex, city, province, latitude, longitude, 
+and display the first 5 rows.
+ </span> </p>
+
+
+
+
+```{r , eval = TRUE}
+
+dat2 <- dat %>% 
+  dplyr::select(country,   # 1pt
+                age,       
+                sex,       
+                city,
+                province,
+                latitude,
+                longitude) 
+
+head(dat2,5) # 1pt
+```
+
+# Question 5: Data variable definitions
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Inspect your data set in Question 4 and describe on a list (using markdown syntax)
+the type of variables (character, numeric, factor, etc.) in the data set and print the name of the variables
+in bold text.  </span> </p>
+
+
+- **country** is a character variable. # 1pt
+- **age** is a character. # 1pt
+- **sex** is a character. # 1pt 
+- **city** is a character. # 1pt
+- **province** is a character. # 1pt
+- **latitude** is a double. # 1pt
+- **longitude** is a double. # 1pt
+
+
+
+#  Question 6: Data wrangling: Change variable attributes
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Make sure the variables latitude, longitude, and age are
+defined as numeric variables in your data set dat2.
+Do not create a new data set but instead modify dat2 to accommodate
+the changes. Display the first 3 rows of the data set dat2.
+</span> </p>
+
+
+
+```{r , warning = FALSE, message = FALSE, eval = TRUE}
+dat2 <- dat2 %>% 
+  mutate(latitude = as.numeric(latitude), # 1pt
+         longitude = as.numeric(longitude), # 1pt
+         age = as.numeric(age)) # 1pt
+
+head(dat2,3)  # 1pt
+```
+
+
+
+# Question 7: Cleaning up data set
+
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Remove the cases of which we do not have information on the patient's age
+and keep those of which the gender of the patient is known.
+Name this newly created data set as dat3.
+ </span> </p>
+
+
+
+
+```{r , eval = TRUE}
+dat3 <- dat2 %>% dplyr::filter(!is.na(age),  # 1pt
+                               sex %in% c("Male",   # 1pt
+                                          "Female") # 1pt
+                               )
+
+```
+
+
+
+# Question 8: Remove patient entries with an age below 1 and name the new data set as dat4 
+
+```{r , eval = TRUE}
+dat4 <- dat3 %>%
+  dplyr::filter(age >= 1) # 1pt
+```
+
+# Question 9: Summarise in a table the variable age in dat4 using kable()
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Using inline R, write a sentence describing the age of the oldest
+patient in this data set.
+ </span> </p>
+
+```{r , eval = TRUE}
+dat4 %>% dplyr::select(age) %>% # 1pt
+  summary() %>% # Nothing to add here
+  kable() %>% # 1pt
+  kable_styling(bootstrap_options = c("striped", "hover")) # 1pt
+```
+
+The oldest patient in this data set is `r max(dat4$age)` (2pts) years old.
+
+
+
+
+# Looking at individual country names (nothing to complete here. I just completed for you!)
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Count the number of cases per country, arrange
+the countries in decreasing order of cases, and
+display a table using kable() of the top 5 countries.
+Store the results into an object called dat5.
+</span> </p>
+
+```{r , eval = TRUE}
+# Please turn eval = TRUE above when you have completed Questions 1-9 
+dat5 <- dat4 %>%
+  dplyr::select(country) %>%
+  dplyr::filter(!is.na(country)) %>%
+  group_by(country) %>%
+  mutate(n = n()) %>%
+  unique() %>%
+  arrange(-n) 
+
+  kable(dat5[1:5,]) 
+  
+```
+
+
+
+# Question 10: Looking at the data using different plots
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Use geom_point to plot the top 5 countries with the most cases using dat5.
+Store the plot in a variable called p1. Ensure that the plot is displayed in
+this section too. Also, make sure you output the plot in this section.
+
+</span> </p>
+
+```{r , eval = TRUE}
+p1 = ggplot(dat5[1:5,], aes(x = country, y = n)) + # 1pt
+  geom_point() + # 1pt
+  theme_bw() + # Nothing to add here
+  theme(axis.text.x = element_text(angle = 90)) # Nothing to add here
+p1
+```
+
+Now repeat the same plot but without the command "theme_bw()"
+
+```{r , eval = TRUE}
+# No new code here so no new points assigned
+p2 = ggplot(dat5[1:5,], aes(x = country, y = n)) + 
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90)) 
+p2
+```
+
+# Question 11: Combining plots
+<p style="border:3px solid #59788E;" <span style="color:#59788E"> 
+Plot figures p1 and p2 in the same plot using grid.arrange()
+from the gridExtra R package.
+</span> </p>
+
+```{r , eval = TRUE}
+grid.arrange(p1, p2) # 3pts
+```
+
+
+
